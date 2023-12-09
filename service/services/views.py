@@ -1,4 +1,5 @@
-from .db.models import F, Prefetch, Sum
+
+from django.db.models import F, Prefetch, Sum
 from django.shortcuts import render
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from clients.models import Client
@@ -22,5 +23,5 @@ class SubscriptionView(ReadOnlyModelViewSet):
 
     response_data = {'result': response.data}
     response_data['total_amount'] = queryset.aggregate(total=Sum('price')).get('total')
-    response.data =  response_data
+    response.data = response_data
     return response

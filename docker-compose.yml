@@ -26,7 +26,8 @@ services:
       - POSTGRES_PASSWORD=password
 
   redis:
-    image: redi
+    image: redis:7.0.5-alpine
+    hostname: redis
 
   worker:
     build:
@@ -36,3 +37,7 @@ services:
     command: -A celery_app.app worker --loglevel=info
     volumes:
       - ./service:/service
+    links:
+      - redis
+    depends_on:
+      - redis
