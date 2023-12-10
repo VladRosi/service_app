@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator
+from django.db.models import indexes
 from django.db.models.signals import post_delete
 from clients.models import Client
 from services.receivers import delete_cache_total_sum
@@ -57,14 +58,22 @@ class Subscription(models.Model):
   service = models.ForeignKey(Service, on_delete=models.PROTECT, related_name='subscriptions')
   plan = models.ForeignKey(Plan, on_delete=models.PROTECT, related_name='subscriptions')
   price = models.PositiveIntegerField(default=0)
-  comment = models.CharField(max_length=255, default='')
+  comment = models.CharField(max_length=255, default='', db_index=True)
+
+  field_a = models.CharField(max_length=255, default='')
+  field_b = models.CharField(max_length=255, default='')
+
+  class Meta:
+    indexes = [
+      models.Index(fields=['field_a', 'field_b']),
+    ]
 
   def save(self, *args, **kwargs):
     is_creating = not bool(self.id)
     result = super().save(*args, **kwargs)
-    if is_creating:
-      set_price.delay(self.id)
-      set_comment.delay(self.id)
+    # if is_creating:
+    #   set_price.delay(self.id)
+    #   set_comment.delay(self.id)
 
     return result
 
