@@ -1,7 +1,8 @@
-from collections.abc import Iterable
 from django.db import models
 from django.core.validators import MaxValueValidator
+from django.db.models.signals import post_delete
 from clients.models import Client
+from services.receivers import delete_cache_total_sum
 from services.tasks import set_comment, set_price
 
 
@@ -58,6 +59,15 @@ class Subscription(models.Model):
   price = models.PositiveIntegerField(default=0)
   comment = models.CharField(max_length=255, default='')
 
+  def save(self, *args, **kwargs):
+    is_creating = not bool(self.id)
+    result = super().save(*args, **kwargs)
+    if is_creating:
+      set_price.delay(self.id)
+      set_comment.delay(self.id)
+
+    return result
+
   # def save(self, *args, save_model=True, **kwargs):
   #   if save_model:
   #     set_price.delay(self.id)
@@ -65,3 +75,6 @@ class Subscription(models.Model):
 
   def __str__(self):
     return f"Client: {self.client.user.username}, Service: {self.service.name}, Plan: “{self.plan}”, Finally Prise: {(self.service.full_price * self.plan.discount_percent / 100)}"
+
+
+post_delete.connect(delete_cache_total_sum, sender=Subscription)
