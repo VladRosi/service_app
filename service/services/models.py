@@ -71,9 +71,9 @@ class Subscription(models.Model):
   def save(self, *args, **kwargs):
     is_creating = not bool(self.id)
     result = super().save(*args, **kwargs)
-    # if is_creating:
-    #   set_price.delay(self.id)
-    #   set_comment.delay(self.id)
+    if is_creating:
+      set_price.delay(self.id)
+      set_comment.delay(self.id)
 
     return result
 
